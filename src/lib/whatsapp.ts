@@ -153,22 +153,25 @@ export function inferFollowup(texts: string[]): Followup {
   let status = "待人工分类";
   let nextAction = "人工查看并标记客户意图";
 
-  if (/(price|quote|quotation|moq|catalog|报价|价格|多少钱|目录)/i.test(normalized)) {
+  if (/(price|quote|quotation|moq|catalog|报价|价格|多少钱|目录|规格书|参数|询价)/i.test(normalized)) {
     intent = "询价";
     status = "待报价";
     nextAction = "补充产品参数并报价";
   }
-  if (/(order|purchase|buy|订单|下单|购买)/i.test(normalized)) {
-    intent = "订单/购买";
-    status = "待确认订单";
-    nextAction = "确认数量、收货信息和付款方式";
+
+  if (/(order|purchase|buy|采购|购买|订单|下单|订购)/i.test(normalized)) {
+    intent = intent === "询价" ? "询价/采购" : "订单/采购";
+    status = "待确认需求";
+    nextAction = "确认数量、规格、交期、收货信息和付款方式";
   }
-  if (/(shipping|delivery|cif|物流|发货|运费)/i.test(normalized) && intent === "待判断") {
-    intent = "物流";
-    status = "待核算物流";
-    nextAction = "核实目的地、重量体积和运输方式";
+
+  if (/(shipping|delivery|lead time|cif|fob|物流|发货|运费|交期|运输)/i.test(normalized)) {
+    if (intent === "待判断") intent = "物流/交期";
+    status = status === "待人工分类" ? "待核算物流" : status;
+    nextAction = "核实目的地、重量体积、交期和运输方式";
   }
-  if (/(sample|样品)/i.test(normalized) && intent === "待判断") {
+
+  if (/(sample|样品|打样)/i.test(normalized) && intent === "待判断") {
     intent = "样品";
     status = "待确认样品";
     nextAction = "确认样品规格和寄送信息";
@@ -185,11 +188,11 @@ export function inferFollowup(texts: string[]): Followup {
 }
 
 function summarizeNeed(text: string, intent: string): string {
-  const shortText = text.length > 100 ? `${text.slice(0, 97)}...` : text;
+  const shortText = text.length > 120 ? `${text.slice(0, 117)}...` : text;
   if (!shortText) return "无";
-  if (intent === "询价") return `需要报价：${shortText}`;
-  if (intent === "订单/购买") return `订单跟进：${shortText}`;
-  if (intent === "物流") return `物流咨询：${shortText}`;
+  if (intent.includes("询价")) return `需要报价：${shortText}`;
+  if (intent.includes("采购") || intent.includes("订单")) return `采购跟进：${shortText}`;
+  if (intent.includes("物流") || intent.includes("交期")) return `物流/交期咨询：${shortText}`;
   if (intent === "样品") return `样品需求：${shortText}`;
   return shortText;
 }
@@ -197,10 +200,10 @@ function summarizeNeed(text: string, intent: string): string {
 function productSummary(text: string): string {
   const products = new Set<string>();
   const tests: Array<[string, RegExp]> = [
-    ["solar panels", /solar panel|550w|panel|光伏板|太阳能板/i],
-    ["lithium battery 48V 100Ah", /48v|100ah|lithium battery|锂电池/i],
-    ["home inverter", /inverter|5kw|hybrid inverter|逆变器/i],
-    ["battery storage", /battery storage|storage|储能/i],
+    ["KRL 储能电源", /krl|储能电源|储能|energy storage|battery storage/i],
+    ["太阳能板", /solar panel|panel|光伏板|太阳能板|550w/i],
+    ["锂电池", /lithium battery|battery|锂电池|电池|48v|100ah/i],
+    ["逆变器", /inverter|hybrid inverter|逆变器|5kw/i],
   ];
 
   for (const [label, pattern] of tests) {
@@ -215,12 +218,12 @@ function quantitySummary(text: string): string {
   const regexes = [
     /\b\d+\s*(?:pieces|pcs|sets|units|piece|pc|set|unit)\b/gi,
     /\b\d+\s+\w+\s+(?:pieces|pcs|sets|units|piece|pc|set|unit)\b/gi,
-    /\b\d+\s*(?:件|套|台|个)\b/gi,
+    /\d+\s*(?:个|件|套|台|只|箱|柜|条|支|片|辆|批)/gi,
   ];
 
   for (const regex of regexes) {
     for (const match of text.matchAll(regex)) {
-      matches.add(match[0]);
+      matches.add(match[0].trim());
     }
   }
 
