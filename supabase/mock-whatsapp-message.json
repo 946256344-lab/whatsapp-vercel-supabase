@@ -1,0 +1,39 @@
+{
+  "object": "whatsapp_business_account",
+  "entry": [
+    {
+      "id": "mock_waba_001",
+      "changes": [
+        {
+          "field": "messages",
+          "value": {
+            "messaging_product": "whatsapp",
+            "metadata": {
+              "display_phone_number": "15551308073",
+              "phone_number_id": "mock_phone_number_001"
+            },
+            "contacts": [
+              {
+                "profile": {
+                  "name": "Aisha Khan"
+                },
+                "wa_id": "447700900101"
+              }
+            ],
+            "messages": [
+              {
+                "id": "wamid.mock.001",
+                "timestamp": "1782970000",
+                "from": "447700900101",
+                "type": "text",
+                "text": {
+                  "body": "Hi, we need a quote for 200 pieces of 550W solar panels for Lagos. Please include CIF shipping cost."
+                }
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}
