@@ -70,5 +70,72 @@ alter table public.messages enable row level security;
 alter table public.message_statuses enable row level security;
 alter table public.customer_followups enable row level security;
 
--- This app uses the service-role key from Vercel server functions.
--- Do not expose SUPABASE_SERVICE_ROLE_KEY to browsers.
+create schema if not exists private;
+
+create table if not exists private.app_config (
+  key text primary key,
+  value text not null,
+  updated_at timestamptz not null default now()
+);
+
+revoke all on schema private from public, anon, authenticated;
+revoke all on all tables in schema private from public, anon, authenticated;
+
+create or replace function private.is_app_request()
+returns boolean
+language sql
+stable
+security definer
+set search_path = private, pg_temp
+as $$
+  select coalesce(
+    (
+      nullif(current_setting('request.headers', true), '')::jsonb
+      ->> 'x-app-secret'
+    ),
+    ''
+  ) = coalesce(
+    (select value from private.app_config where key = 'app_db_secret'),
+    ''
+  );
+$$;
+
+grant usage on schema public to anon;
+grant select, insert, update, delete on public.contacts to anon;
+grant select, insert, update, delete on public.webhook_events to anon;
+grant select, insert, update, delete on public.messages to anon;
+grant select, insert, update, delete on public.message_statuses to anon;
+grant select, insert, update, delete on public.customer_followups to anon;
+
+drop policy if exists app_server_access on public.contacts;
+drop policy if exists app_server_access on public.webhook_events;
+drop policy if exists app_server_access on public.messages;
+drop policy if exists app_server_access on public.message_statuses;
+drop policy if exists app_server_access on public.customer_followups;
+
+create policy app_server_access on public.contacts
+  for all to anon
+  using (private.is_app_request())
+  with check (private.is_app_request());
+
+create policy app_server_access on public.webhook_events
+  for all to anon
+  using (private.is_app_request())
+  with check (private.is_app_request());
+
+create policy app_server_access on public.messages
+  for all to anon
+  using (private.is_app_request())
+  with check (private.is_app_request());
+
+create policy app_server_access on public.message_statuses
+  for all to anon
+  using (private.is_app_request())
+  with check (private.is_app_request());
+
+create policy app_server_access on public.customer_followups
+  for all to anon
+  using (private.is_app_request())
+  with check (private.is_app_request());
+
+-- Insert the real app_db_secret into private.app_config outside Git-tracked SQL.

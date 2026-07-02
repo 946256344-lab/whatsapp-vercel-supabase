@@ -1,75 +1,28 @@
 # 部署执行清单
 
-已经完成：
+已完成：
 
-- Supabase 项目已发现：`fjbxwbieccikiqhhzlry`
-- Supabase 表结构已创建成功
-- 云端版项目代码已生成
+- GitHub 仓库：`946256344-lab/whatsapp-vercel-supabase`
+- Supabase 项目：`fjbxwbieccikiqhhzlry`
+- Vercel 项目：`zayns-projects-a4968f9b/whatsapp-vercel-supabase`
+- Vercel 已连接 GitHub 仓库
 
-还需要在后台完成一次：
+## Vercel 环境变量
 
-## 1. Supabase 获取密钥
-
-Supabase 后台进入：
-
-```text
-Project Settings -> API
-```
-
-复制：
+生产环境需要：
 
 ```text
-Project URL
-anon public key
-service_role key
-```
-
-注意：`service_role key` 只能放 Vercel 环境变量，不能公开。
-
-## 2. Vercel 新建项目
-
-项目目录：
-
-```text
-D:\codex\whatsapp-vercel-supabase
-```
-
-项目名建议：
-
-```text
-whatsapp-krlpower
-```
-
-Framework Preset:
-
-```text
-Next.js
-```
-
-## 3. Vercel 环境变量
-
-填入：
-
-```text
-WHATSAPP_VERIFY_TOKEN=一串长随机口令
+WHATSAPP_VERIFY_TOKEN=Meta webhook 验证口令
 ADMIN_TOKEN=后台访问口令
 SUPABASE_URL=Supabase Project URL
-SUPABASE_SERVICE_ROLE_KEY=Supabase service_role key
+SUPABASE_SERVER_KEY=Supabase anon 或 publishable key
+APP_DB_SECRET=服务端数据库访问密钥
 NEXT_PUBLIC_SUPABASE_URL=Supabase Project URL
-NEXT_PUBLIC_SUPABASE_ANON_KEY=Supabase anon public key
 ```
 
-## 4. Vercel 域名
+说明：项目默认不需要 `service_role key`。数据库 RLS 会检查 Vercel 服务端请求头里的 `APP_DB_SECRET`，普通公开请求不能直接读写表。
 
-添加域名：
-
-```text
-whatsapp.krlpower.com
-```
-
-然后按 Vercel 提示去 Cloudflare DNS 添加记录。
-
-## 5. Meta WABA Webhooks
+## Meta WABA Webhooks
 
 Callback URL:
 
@@ -80,7 +33,7 @@ https://whatsapp.krlpower.com/api/webhook/whatsapp
 Verify token:
 
 ```text
-和 WHATSAPP_VERIFY_TOKEN 完全相同
+与 WHATSAPP_VERIFY_TOKEN 完全相同
 ```
 
 订阅字段：
@@ -89,7 +42,7 @@ Verify token:
 messages
 ```
 
-## 6. 后台地址
+## 后台地址
 
 ```text
 https://whatsapp.krlpower.com/admin?token=你的_ADMIN_TOKEN

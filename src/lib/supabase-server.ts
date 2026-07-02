@@ -1,11 +1,18 @@
 import { createClient } from "@supabase/supabase-js";
-import { requiredEnv } from "./env";
+import { optionalEnv, requiredEnv } from "./env";
 
 export function createServiceClient() {
-  return createClient(requiredEnv("SUPABASE_URL"), requiredEnv("SUPABASE_SERVICE_ROLE_KEY"), {
+  const serverKey = optionalEnv("SUPABASE_SERVER_KEY") || requiredEnv("SUPABASE_SERVICE_ROLE_KEY");
+
+  return createClient(requiredEnv("SUPABASE_URL"), serverKey, {
     auth: {
       persistSession: false,
       autoRefreshToken: false,
+    },
+    global: {
+      headers: {
+        "x-app-secret": requiredEnv("APP_DB_SECRET"),
+      },
     },
   });
 }
