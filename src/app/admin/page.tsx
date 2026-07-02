@@ -6,6 +6,11 @@ type AdminPageProps = {
   searchParams: Promise<{ token?: string; date?: string }>;
 };
 
+type ContactLite = {
+  name?: string | null;
+  wa_id?: string | null;
+};
+
 export const dynamic = "force-dynamic";
 
 export default async function AdminPage({ searchParams }: AdminPageProps) {
@@ -18,7 +23,9 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
       <main className="shell">
         <section className="panel">
           <h1 className="title">需要后台口令</h1>
-          <p className="subtitle">请用 Vercel 环境变量 ADMIN_TOKEN 配置后台口令，然后访问：</p>
+          <p className="subtitle">
+            请用 Vercel 环境变量 ADMIN_TOKEN 配置后台口令，然后访问：
+          </p>
           <pre>/admin?token=你的口令</pre>
         </section>
       </main>
@@ -59,7 +66,7 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
       <header className="topbar">
         <div>
           <h1 className="title">WhatsApp 客户数据后台</h1>
-          <p className="subtitle">Webhook、客户消息、客户级跟进表和 CSV 导出。</p>
+          <p className="subtitle">Webhook、客户消息、客户跟进表和 CSV 导出。</p>
         </div>
         <Link className="button" href={exportHref}>
           导出客户跟进 CSV
@@ -112,7 +119,7 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
             </thead>
             <tbody>
               {(followups || []).map((row) => {
-                const contact = row.contacts as { name?: string | null; wa_id?: string | null } | null;
+                const contact = row.contacts as ContactLite | null;
                 return (
                   <tr key={row.id}>
                     <td>{contact?.name || "未命名客户"}</td>
